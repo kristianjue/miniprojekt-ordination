@@ -154,44 +154,53 @@ public class DataService
         return pn;
     }
 
-    public DagligFast OpretDagligFast(int patientId, int laegemiddelId, 
-        double antalMorgen, double antalMiddag, double antalAften, double antalNat, 
+    public DagligFast OpretDagligFast(int patientId, int laegemiddelId,
+        double antalMorgen, double antalMiddag, double antalAften, double antalNat,
         DateTime startDato, DateTime slutDato)
     {
-
-        var patient = GetPatientById(patientId);
-        var laegemiddel = GetLaegemiddelById(laegemiddelId);
-        
-        if(laegemiddel == null || patient == null) {
-            throw new ArgumentNullException();
+        var patient = db.Patienter.Find(patientId);
+        var laegemiddel = db.Laegemiddler.Find(laegemiddelId);
+        if (patient == null || laegemiddel == null)
+        {
+            throw new ArgumentException("Invalid patientId or laegemiddelId");
         }
-        
-        var dagligFast = new DagligFast (startDato, slutDato, laegemiddel, antalMorgen, antalMiddag, antalAften, antalNat);
-
-    db.Ordinationer.Add(dagligFast);
-    db.SaveChanges();
-    return dagligFast;
-    }
-
-    public DagligSkæv OpretDagligSkaev(int patientId, int laegemiddelId, Dosis[] doser, DateTime startDato, DateTime slutDato)
-    {
-        var patient = GetPatientById(patientId);
-        var laegemiddel = GetLaegemiddelById(laegemiddelId);
-        
-        if(laegemiddel == null || patient == null) {
-            throw new ArgumentNullException();
-        }
-
-        var dagligSkaev = new DagligSkæv(startDato, slutDato, laegemiddel, doser);
-        db.Ordinationer.Add(dagligSkaev);
+        var dagligFast = new DagligFast(startDato, slutDato, laegemiddel, antalMorgen, antalMiddag, antalAften, antalNat);
+        db.DagligFaste.Add(dagligFast);
         db.SaveChanges();
-        
-        return dagligSkaev;
+        return dagligFast;
     }
 
-    public string AnvendOrdination(int id, Dato dato) {
-        // TODO: Implement!
-        return null!;
+    public DagligSkæv OpretDagligSkaev(int patientId, int laegemiddelId, Dosis[] doser, DateTime startDato, DateTime slutDato) {
+        var patient = db.Patienter.Find(patientId);
+        var laegemiddel = db.Laegemiddler.Find(laegemiddelId);
+        if (patient == null || laegemiddel == null)
+        {
+            throw new ArgumentException("Invalid patientId or laegemiddelId");
+        }
+        var dagligSkæv = new DagligSkæv(startDato, slutDato, laegemiddel);
+        dagligSkæv.doser = doser.ToList();
+        db.DagligSkæve.Add(dagligSkæv);
+        db.SaveChanges();
+        return dagligSkæv;
+    }
+
+    public string AnvendOrdination(int id, Dato dato)
+    {
+        var ordination = db.Ordinationer.Find(id);
+        if (ordination == null)
+        {
+            throw new ArgumentException("Invalid ordinationId");
+        }
+        if (ordination is PN pn)
+        {
+            if (pn.givDosis(dato))
+            {
+                db.SaveChanges();
+                return "Dosis givet";
+            }
+            return "Dato uden for ordinationens gyldighedsperiode";
+        }
+        return "Ordinationen er ikke en PN";
     }
 
     /// <summary>

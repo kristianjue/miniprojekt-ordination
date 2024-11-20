@@ -17,5 +17,4 @@ public class PatientTest
         Assert.AreEqual(navn, patient.navn);
     }
 
-    
 }
