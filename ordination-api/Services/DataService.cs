@@ -65,12 +65,12 @@ public class DataService
             Laegemiddel[] lm = db.Laegemiddler.ToArray();
             Patient[] p = db.Patienter.ToArray();
 
-            ordinationer[0] = new PN(new DateTime(2021, 1, 1), new DateTime(2021, 1, 12), 123, lm[1]);    
-            ordinationer[1] = new PN(new DateTime(2021, 2, 12), new DateTime(2021, 2, 14), 3, lm[0]);    
-            ordinationer[2] = new PN(new DateTime(2021, 1, 20), new DateTime(2021, 1, 25), 5, lm[2]);    
-            ordinationer[3] = new PN(new DateTime(2021, 1, 1), new DateTime(2021, 1, 12), 123, lm[1]);
-            ordinationer[4] = new DagligFast(new DateTime(2021, 1, 10), new DateTime(2021, 1, 12), lm[1], 2, 0, 1, 0);
-            ordinationer[5] = new DagligSkæv(new DateTime(2021, 1, 23), new DateTime(2021, 1, 24), lm[2]);
+            ordinationer[0] = new PN(new DateTime(2024, 11, 21), new DateTime(2021, 1, 12), 123, lm[1]);    
+            ordinationer[1] = new PN(new DateTime(2024, 11, 20), new DateTime(2021, 2, 14), 3, lm[0]);    
+            ordinationer[2] = new PN(new DateTime(2024, 11, 22), new DateTime(2021, 1, 25), 5, lm[2]);    
+            ordinationer[3] = new PN(new DateTime(2024, 11, 20), new DateTime(2021, 1, 12), 123, lm[1]);
+            ordinationer[4] = new DagligFast(new DateTime(2024, 11, 22), new DateTime(2021, 1, 12), lm[1], 2, 0, 1, 0);
+            ordinationer[5] = new DagligSkæv(new DateTime(2024, 11, 23), new DateTime(2021, 1, 24), lm[2]);
             
             ((DagligSkæv) ordinationer[5]).doser = new Dosis[] { 
                 new Dosis(CreateTimeOnly(12, 0, 0), 0.5),
@@ -125,20 +125,30 @@ public class DataService
     public List<Patient> GetPatienter() {
         return db.Patienter.Include(p => p.ordinationer).ToList();
     }
+    
+    public Patient GetPatientById(int id) {
+        return db.Patienter.Find(id);
+    }
 
     public List<Laegemiddel> GetLaegemidler() {
         return db.Laegemiddler.ToList();
     }
+    
+    public Laegemiddel GetLaegemiddelById(int id) {
+        return db.Laegemiddler.Find(id);
+    }
 
     public PN OpretPN(int patientId, int laegemiddelId, double antal, DateTime startDato, DateTime slutDato)
     {
-        var patient = db.Patienter.Find(patientId);
-        var laegemiddel = db.Laegemiddler.Find(laegemiddelId);
-        if (patient == null || laegemiddel == null)
-        {
-            throw new ArgumentException("Invalid patientId or laegemiddelId");
+        Patient patient = db.Patienter.Find(patientId);
+        Laegemiddel laegemiddel = GetLaegemiddelById(laegemiddelId);
+        
+        if(laegemiddel == null || patient == null) {
+            throw new ArgumentNullException();
         }
-        var pn = new PN(startDato, slutDato, antal, laegemiddel);
+        
+        var pn = new PN(startDato, slutDato,antal,laegemiddel);
+        
         db.PNs.Add(pn);
         db.SaveChanges();
         return pn;
@@ -193,29 +203,28 @@ public class DataService
         return "Ordinationen er ikke en PN";
     }
 
-        /// <summary>
-        /// Den anbefalede dosis for den pågældende patient, per døgn, hvor der skal tages hensyn til
-        /// patientens vægt. Enheden afhænger af lægemidlet. Patient og lægemiddel må ikke være null.
-        /// </summary>
-        /// <param name="patient"></param>
-        /// <param name="laegemiddel"></param>
-        /// <returns></returns>
-        public double GetAnbefaletDosisPerDøgn(int patientId, int laegemiddelId) {
-        var patient = db.Patienter.Find(patientId);
-        var laegemiddel = db.Laegemiddler.Find(laegemiddelId);
-        if (patient == null || laegemiddel == null)
-        {
-            throw new ArgumentException("Invalid patientId or laegemiddelId");
+    /// <summary>
+    /// Den anbefalede dosis for den pågældende patient, per døgn, hvor der skal tages hensyn til
+	/// patientens vægt. Enheden afhænger af lægemidlet. Patient og lægemiddel må ikke være null.
+    /// </summary>
+    /// <param name="patient"></param>
+    /// <param name="laegemiddel"></param>
+    /// <returns></returns>
+	public double GetAnbefaletDosisPerDøgn(int patientId, int laegemiddelId)
+    {
+        var patient = GetPatientById(patientId);
+        var laegemiddel = GetLaegemiddelById(laegemiddelId);
+        
+        if(patient == null || laegemiddel == null) {
+            throw new ArgumentNullException();
         }
-        if (patient.vaegt < 25)
-        {
+        
+        if(patient.vaegt < 25)
             return laegemiddel.enhedPrKgPrDoegnLet * patient.vaegt;
-        }
-        if (patient.vaegt <= 120)
-        {
-            return laegemiddel.enhedPrKgPrDoegnNormal * patient.vaegt;
-        }
-        return laegemiddel.enhedPrKgPrDoegnTung * patient.vaegt;
+        
+        if(patient.vaegt > 120)
+            return laegemiddel.enhedPrKgPrDoegnTung * patient.vaegt;
+        
+        return laegemiddel.enhedPrKgPrDoegnNormal * patient.vaegt;
     }
-    
 }
