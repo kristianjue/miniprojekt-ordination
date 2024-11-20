@@ -45,12 +45,15 @@ public class ServiceTest
     [ExpectedException(typeof(ArgumentNullException))]
     public void TestAtKodenSmiderEnException()
     {
-        // Herunder skal man så kalde noget kode,
-        // der smider en exception.
+        try
+        {
+            service.OpretDagligFast(0, 0, 0, 0, 0, 0, DateTime.Now, DateTime.Now.AddDays(3));
+        }
+        catch (ArgumentNullException e)
+        {
+            Assert.AreEqual("Value cannot be null. (Parameter 'patientId')", e.Message);
+            throw;
+        }
 
-        // Hvis koden _ikke_ smider en exception,
-        // så fejler testen.
-
-        Console.WriteLine("Her kommer der ikke en exception. Testen fejler.");
     }
 }

@@ -130,39 +130,92 @@ public class DataService
         return db.Laegemiddler.ToList();
     }
 
-    public PN OpretPN(int patientId, int laegemiddelId, double antal, DateTime startDato, DateTime slutDato) {
-        // TODO: Implement!
-        return null!;
+    public PN OpretPN(int patientId, int laegemiddelId, double antal, DateTime startDato, DateTime slutDato)
+    {
+        var patient = db.Patienter.Find(patientId);
+        var laegemiddel = db.Laegemiddler.Find(laegemiddelId);
+        if (patient == null || laegemiddel == null)
+        {
+            throw new ArgumentException("Invalid patientId or laegemiddelId");
+        }
+        var pn = new PN(startDato, slutDato, antal, laegemiddel);
+        db.PNs.Add(pn);
+        db.SaveChanges();
+        return pn;
     }
 
-    public DagligFast OpretDagligFast(int patientId, int laegemiddelId, 
-        double antalMorgen, double antalMiddag, double antalAften, double antalNat, 
-        DateTime startDato, DateTime slutDato) {
-
-        // TODO: Implement!
-        return null!;
+    public DagligFast OpretDagligFast(int patientId, int laegemiddelId,
+        double antalMorgen, double antalMiddag, double antalAften, double antalNat,
+        DateTime startDato, DateTime slutDato)
+    {
+        var patient = db.Patienter.Find(patientId);
+        var laegemiddel = db.Laegemiddler.Find(laegemiddelId);
+        if (patient == null || laegemiddel == null)
+        {
+            throw new ArgumentException("Invalid patientId or laegemiddelId");
+        }
+        var dagligFast = new DagligFast(startDato, slutDato, laegemiddel, antalMorgen, antalMiddag, antalAften, antalNat);
+        db.DagligFaste.Add(dagligFast);
+        db.SaveChanges();
+        return dagligFast;
     }
 
     public DagligSkæv OpretDagligSkaev(int patientId, int laegemiddelId, Dosis[] doser, DateTime startDato, DateTime slutDato) {
-        // TODO: Implement!
-        return null!;
+        var patient = db.Patienter.Find(patientId);
+        var laegemiddel = db.Laegemiddler.Find(laegemiddelId);
+        if (patient == null || laegemiddel == null)
+        {
+            throw new ArgumentException("Invalid patientId or laegemiddelId");
+        }
+        var dagligSkæv = new DagligSkæv(startDato, slutDato, laegemiddel);
+        dagligSkæv.doser = doser.ToList();
+        db.DagligSkæve.Add(dagligSkæv);
+        db.SaveChanges();
+        return dagligSkæv;
     }
 
-    public string AnvendOrdination(int id, Dato dato) {
-        // TODO: Implement!
-        return null!;
+    public string AnvendOrdination(int id, Dato dato)
+    {
+        var ordination = db.Ordinationer.Find(id);
+        if (ordination == null)
+        {
+            throw new ArgumentException("Invalid ordinationId");
+        }
+        if (ordination is PN pn)
+        {
+            if (pn.givDosis(dato))
+            {
+                db.SaveChanges();
+                return "Dosis givet";
+            }
+            return "Dato uden for ordinationens gyldighedsperiode";
+        }
+        return "Ordinationen er ikke en PN";
     }
 
-    /// <summary>
-    /// Den anbefalede dosis for den pågældende patient, per døgn, hvor der skal tages hensyn til
-	/// patientens vægt. Enheden afhænger af lægemidlet. Patient og lægemiddel må ikke være null.
-    /// </summary>
-    /// <param name="patient"></param>
-    /// <param name="laegemiddel"></param>
-    /// <returns></returns>
-	public double GetAnbefaletDosisPerDøgn(int patientId, int laegemiddelId) {
-        // TODO: Implement!
-        return -1;
-	}
+        /// <summary>
+        /// Den anbefalede dosis for den pågældende patient, per døgn, hvor der skal tages hensyn til
+        /// patientens vægt. Enheden afhænger af lægemidlet. Patient og lægemiddel må ikke være null.
+        /// </summary>
+        /// <param name="patient"></param>
+        /// <param name="laegemiddel"></param>
+        /// <returns></returns>
+        public double GetAnbefaletDosisPerDøgn(int patientId, int laegemiddelId) {
+        var patient = db.Patienter.Find(patientId);
+        var laegemiddel = db.Laegemiddler.Find(laegemiddelId);
+        if (patient == null || laegemiddel == null)
+        {
+            throw new ArgumentException("Invalid patientId or laegemiddelId");
+        }
+        if (patient.vaegt < 25)
+        {
+            return laegemiddel.enhedPrKgPrDoegnLet * patient.vaegt;
+        }
+        if (patient.vaegt <= 120)
+        {
+            return laegemiddel.enhedPrKgPrDoegnNormal * patient.vaegt;
+        }
+        return laegemiddel.enhedPrKgPrDoegnTung * patient.vaegt;
+    }
     
 }
