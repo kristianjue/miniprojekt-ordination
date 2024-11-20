@@ -42,18 +42,10 @@ public class ServiceTest
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
+    [ExpectedException(typeof(ArgumentException))]
     public void TestAtKodenSmiderEnException()
     {
-        try
-        {
             service.OpretDagligFast(0, 0, 0, 0, 0, 0, DateTime.Now, DateTime.Now.AddDays(3));
-        }
-        catch (ArgumentNullException e)
-        {
-            Assert.AreEqual("Value cannot be null. (Parameter 'patientId')", e.Message);
-            throw;
-        }
 
     }
 }

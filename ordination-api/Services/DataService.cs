@@ -149,7 +149,7 @@ public class DataService
         
         var pn = new PN(startDato, slutDato,antal,laegemiddel);
         
-        db.PNs.Add(pn);
+        patient.ordinationer.Add(pn);
         db.SaveChanges();
         return pn;
     }
@@ -165,7 +165,7 @@ public class DataService
             throw new ArgumentException("Invalid patientId or laegemiddelId");
         }
         var dagligFast = new DagligFast(startDato, slutDato, laegemiddel, antalMorgen, antalMiddag, antalAften, antalNat);
-        db.DagligFaste.Add(dagligFast);
+        patient.ordinationer.Add(dagligFast);
         db.SaveChanges();
         return dagligFast;
     }
@@ -179,7 +179,7 @@ public class DataService
         }
         var dagligSkæv = new DagligSkæv(startDato, slutDato, laegemiddel);
         dagligSkæv.doser = doser.ToList();
-        db.DagligSkæve.Add(dagligSkæv);
+        patient.ordinationer.Add(dagligSkæv);
         db.SaveChanges();
         return dagligSkæv;
     }
