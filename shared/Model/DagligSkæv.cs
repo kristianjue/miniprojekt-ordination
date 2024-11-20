@@ -21,9 +21,14 @@ public class DagligSkæv : Ordination {
 		return base.antalDage() * doegnDosis();
 	}
 
-	public override double doegnDosis() {
-		// TODO: Implement!
-        return -1;
+	public override double doegnDosis()
+	{
+		double sum = 0;
+		foreach (var dosis in doser)
+		{
+			sum+=dosis.antal;
+		}
+		return sum;
 	}
 
 	public override String getType() {
