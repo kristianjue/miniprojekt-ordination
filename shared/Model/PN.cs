@@ -26,7 +26,30 @@ public class PN : Ordination {
     }
 
     public override double doegnDosis() {
-        return (samletDosis() / getAntalGangeGivet());
+       double sum = 0;
+       
+       Console.WriteLine("Enter");
+       if (dates.Count() > 0)
+       {
+           DateTime min = dates.First().dato;
+           DateTime max = dates.First().dato;
+              foreach (Dato d in dates)
+              {
+                if (d.dato < min)
+                {
+                     min = d.dato;
+                }
+                if (d.dato > max)
+                {
+                     max = d.dato;
+                }
+              }
+              int dage = (int)(max - min).Days + 1;
+              Console.WriteLine("Dage: " + dage);
+              sum = samletDosis()/dage;
+       }
+
+       return sum;
     }
 
 
