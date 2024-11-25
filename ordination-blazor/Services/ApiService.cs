@@ -44,6 +44,13 @@ public class ApiService
         string url = $"{baseAPI}laegemidler";
         return await http.GetFromJsonAsync<Laegemiddel[]>(url);
     }
+    
+    public async Task<double> GetAntalGangeGivet(int laegemiddelId, int minVaegt, int maxVaegt)
+    {
+        string url = $"{baseAPI}ordinationer/statistik/{laegemiddelId}/{minVaegt}/{maxVaegt}";
+        return await http.GetFromJsonAsync<double>(url);
+    }
+   
 
     public async Task<PN> OpretPN(int patientId, int laegemiddelId, double antal, DateTime startDato, DateTime slutDato)
     {

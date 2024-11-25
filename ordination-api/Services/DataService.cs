@@ -227,4 +227,23 @@ public class DataService
         
         return laegemiddel.enhedPrKgPrDoegnNormal * patient.vaegt;
     }
+    
+    public List<Ordination> GetAntalGangeGivet(int laegemiddelId, int minWeight, int maxWeight)
+    {
+        var ordinationer2 = db.Patienter
+            .Include(x => x.ordinationer)
+            .ThenInclude(x => x.laegemiddel)
+            .Where(x => x.vaegt >= minWeight && x.vaegt <= maxWeight)
+            .SelectMany(p => p.ordinationer)
+            .Where(o => o.laegemiddel.LaegemiddelId == laegemiddelId)
+            .AsEnumerable(); // Fetch data into memory.
+
+
+        if (!ordinationer2.Any()) {
+            throw new InvalidOperationException("No matching ordinationer found.");
+        }
+
+        
+        return ordinationer2.ToList();
+    }
 }

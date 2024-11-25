@@ -61,6 +61,11 @@ app.MapGet("/api/ordinationer", (DataService service) =>
     });
 });
 
+app.MapGet("/api/ordinationer/statistik/{LaegemiddelId}/{minVaegt}/{maxVaegt}", (DataService service, int LaegemiddelId, int minVaegt, int maxVaegt) =>
+{
+    return service.GetAntalGangeGivet(LaegemiddelId, minVaegt, maxVaegt);
+});
+
 app.MapGet("/api/patienter", (DataService service) =>
 {
     return service.GetPatienter().Select(p => new
