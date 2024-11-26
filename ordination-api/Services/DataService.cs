@@ -228,22 +228,55 @@ public class DataService
         return laegemiddel.enhedPrKgPrDoegnNormal * patient.vaegt;
     }
     
-    public List<Ordination> GetAntalGangeGivet(int laegemiddelId, int minWeight, int maxWeight)
+    public double GetAntalGangeGivet(int laegemiddelId, int minWeight, int maxWeight)
     {
-        var ordinationer2 = db.Patienter
-            .Include(x => x.ordinationer)
-            .ThenInclude(x => x.laegemiddel)
-            .Where(x => x.vaegt >= minWeight && x.vaegt <= maxWeight)
-            .SelectMany(p => p.ordinationer)
-            .Where(o => o.laegemiddel.LaegemiddelId == laegemiddelId)
-            .AsEnumerable(); // Fetch data into memory.
+        // Log inputparametrene
+        Console.WriteLine($"Metode kaldt med følgende input:");
+        Console.WriteLine($"Lægemiddel ID: {laegemiddelId}");
+        Console.WriteLine($"Minimum vægt: {minWeight}");
+        Console.WriteLine($"Maksimum vægt: {maxWeight}");
 
+        // Hent patienter inden for vægtområdet
+        var patienter = db.Patienter
+            .Include(p => p.ordinationer)
+            .ThenInclude(o => o.laegemiddel)
+            .Where(p => p.vaegt >= minWeight && p.vaegt <= maxWeight)
+            .ToList();
 
-        if (!ordinationer2.Any()) {
-            throw new InvalidOperationException("No matching ordinationer found.");
+        Console.WriteLine($"Antal patienter fundet: {patienter.Count}");
+
+        double totalDosis = 0;
+
+        foreach (var patient in patienter)
+        {
+            Console.WriteLine($"Patient: {patient.PatientId}, Navn: {patient.navn}, Vægt: {patient.vaegt}");
+            Console.WriteLine($"Antal ordinationer: {patient.ordinationer.Count}");
+
+            foreach (var ordination in patient.ordinationer)
+            {
+                Console.WriteLine($"  Ordination lægemiddel ID: {ordination.laegemiddel.LaegemiddelId}, Input lægemiddel ID: {laegemiddelId}");
+            }
+
+            var relevantOrdinationer = patient.ordinationer
+                .Where(o => o.laegemiddel.LaegemiddelId == laegemiddelId)
+                .ToList();
+            Console.WriteLine($"Found {relevantOrdinationer.Count} ordinationer for patient {patient.PatientId}.");
+            Console.WriteLine($"Patient {patient.PatientId} har {relevantOrdinationer.Count} relevante ordinationer.");
+
+            foreach (var ordination in relevantOrdinationer)
+            {
+                double samletDosis = ordination.samletDosis();
+                Console.WriteLine($"  Samlet dosis for ordination: {samletDosis}");
+
+                totalDosis += samletDosis;
+            }
         }
 
-        
-        return ordinationer2.ToList();
+        Console.WriteLine($"Total dosis beregnet på tværs af patienter: {totalDosis}");
+        return totalDosis;
     }
+
+
+
+
 }
