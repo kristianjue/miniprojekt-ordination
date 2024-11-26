@@ -254,7 +254,26 @@ public class DataService
 
             foreach (var ordination in patient.ordinationer)
             {
+                switch (ordination.getType())
+                {
+                    // henter ordinationen med typen dagligFast og bruger .samletDosis metoden og værdien sammenlægges
+                    case "DagligFast":
+                        var dagligFast = db.DagligFaste.Find(ordination.OrdinationId);
+                        totalDosis += dagligFast.samletDosis();
+                        break;
+                    
+                    case "DagligSkæv":
+                        var dagligSkæv = db.DagligSkæve.Find(ordination.OrdinationId);
+                        totalDosis += dagligSkæv.samletDosis();
+                        break;
+                    
+                    case "PN":
+                        var pn = db.PNs.Include(d => d.dates).FirstOrDefault(o => o.OrdinationId == ordination.OrdinationId);
+                        totalDosis += pn.samletDosis();
+                        break;
+                }
                 Console.WriteLine($"  Ordination lægemiddel ID: {ordination.laegemiddel.LaegemiddelId}, Input lægemiddel ID: {laegemiddelId}");
+                Console.WriteLine($"Start dato: {ordination.startDen} Slut dato {ordination.slutDen}");
             }
 
             var relevantOrdinationer = patient.ordinationer
