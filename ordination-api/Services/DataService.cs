@@ -143,8 +143,8 @@ public class DataService
         Patient patient = db.Patienter.Find(patientId);
         Laegemiddel laegemiddel = GetLaegemiddelById(laegemiddelId);
         
-        if(laegemiddel == null || patient == null) {
-            throw new ArgumentNullException();
+        if(laegemiddel == null || patient == null|| antal<0 || startDato > slutDato) {
+            throw new InvalidOperationException("Id kan ikke være et negativt integer");
         }
         
         var pn = new PN(startDato, slutDato,antal,laegemiddel);
@@ -162,7 +162,7 @@ public class DataService
         var laegemiddel = db.Laegemiddler.Find(laegemiddelId);
         if (patient == null || laegemiddel == null)
         {
-            throw new ArgumentException("Invalid patientId or laegemiddelId");
+            throw new InvalidOperationException("Invalid patientId or laegemiddelId");
         }
         var dagligFast = new DagligFast(startDato, slutDato, laegemiddel, antalMorgen, antalMiddag, antalAften, antalNat);
         patient.ordinationer.Add(dagligFast);
@@ -173,9 +173,9 @@ public class DataService
     public DagligSkæv OpretDagligSkaev(int patientId, int laegemiddelId, Dosis[] doser, DateTime startDato, DateTime slutDato) {
         var patient = db.Patienter.Find(patientId);
         var laegemiddel = db.Laegemiddler.Find(laegemiddelId);
-        if (patient == null || laegemiddel == null)
+        if (patient == null || laegemiddel == null|| doser.Length == 0 || startDato > slutDato)
         {
-            throw new ArgumentException("Invalid patientId or laegemiddelId");
+            throw new InvalidOperationException("Invalid patientId or laegemiddelId");
         }
         var dagligSkæv = new DagligSkæv(startDato, slutDato, laegemiddel);
         dagligSkæv.doser = doser.ToList();
@@ -189,7 +189,7 @@ public class DataService
         var ordination = db.Ordinationer.Find(id);
         if (ordination == null)
         {
-            throw new ArgumentException("Invalid ordinationId");
+            throw new InvalidOperationException("Invalid ordinationId");
         }
         if (ordination is PN pn)
         {
@@ -216,7 +216,7 @@ public class DataService
         var laegemiddel = GetLaegemiddelById(laegemiddelId);
         
         if(patient == null || laegemiddel == null) {
-            throw new ArgumentNullException();
+            throw new InvalidOperationException();
         }
         
         if(patient.vaegt < 25)
